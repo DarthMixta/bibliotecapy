@@ -1,7 +1,11 @@
 import re
 from datetime import datetime, timedelta
 
+def dni_valid(dni: str) -> bool:
+    return re.fullmatch(r"\d{8}[A-Z]", dni) is not None
+
 class Biblioteca:
+
     def __init__(self):
         self.usuaris = {}
         self.llibres = {}
@@ -17,7 +21,7 @@ class Biblioteca:
             return f"Usuari {nom} afegit correctament."
         except Exception as e:
             return f"Error en afegir usuari: {e}"
-
+        
     def actualitzar_usuari(self, dni: str, nou_nom: str) -> str:
         if dni in self.usuaris:
             self.usuaris[dni] = nou_nom.strip()
@@ -102,10 +106,9 @@ class Biblioteca:
         if llibre.dni_prestec == "None":
             return f"El llibre ja està disponible."
 
+        avis = ""
         if datetime.now() - llibre.data_prestec > timedelta(days=30):
             avis = " (ATENCIÓ: préstec excedit d'un mes)"
-        else:
-            avis = ""
 
         llibre.dni_prestec = "None"
         llibre.data_prestec = None

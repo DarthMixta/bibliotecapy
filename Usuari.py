@@ -21,7 +21,6 @@ class Llibre:
         self.dni_prestec = "None"
         self.data_prestec = None
         return "Dades del llibre introduïdes correctament."
-
-
-def dni_valid(dni: str) -> bool:
-    return re.fullmatch(r"\d{8}[A-Z]", dni) is not None
+    
+    def dni_valid(dni: str) -> bool:
+        return re.fullmatch(r"\d{8}[A-Z]", dni) is not None
