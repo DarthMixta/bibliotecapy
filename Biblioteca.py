@@ -1,6 +1,17 @@
 import re
 from datetime import datetime, timedelta
 
+class Llibre:
+    def __init__(self, titol: str, autor: str):
+        self.titol = titol
+        self.autor = autor
+        self.dni_prestec = None 
+        self.data_prestec = None
+
+    def imprimir_dades(self) -> str:
+        estat = "Disponible" if self.dni_prestec is None else f"Prestat a {self.dni_prestec}"
+        return f"Títol: {self.titol}, Autor: {self.autor}, Estat: {estat}"
+
 def dni_valid(dni: str) -> bool:
     return re.fullmatch(r"\d{8}[A-Z]", dni) is not None
 
@@ -12,6 +23,8 @@ class Biblioteca:
 
     def afegir_usuari(self, usuari: str) -> str:
         try:
+            if "," not in usuari:
+                return "Format d'usuari incorrecte. Cal: DNI, Nom"
             dni, nom = usuari.split(",", 1)
             dni = dni.strip()
             nom = nom.strip()
@@ -30,6 +43,8 @@ class Biblioteca:
 
     def afegir_llibre(self, llibre_str: str) -> str:
         try:
+            if "," not in llibre_str:
+                return "Format de llibre incorrecte. Cal: Títol, Autor"
             titol, autor = llibre_str.split(",", 1)
             llibre = Llibre(titol.strip(), autor.strip())
             self.llibres[titol.strip()] = llibre
@@ -56,9 +71,9 @@ class Biblioteca:
         for llibre in self.llibres.values():
             if filtre == "tots":
                 resultat.append(llibre.imprimir_dades())
-            elif filtre == "disponibles" and llibre.dni_prestec == "None":
+            elif filtre == "disponibles" and llibre.dni_prestec is None:
                 resultat.append(llibre.imprimir_dades())
-            elif filtre == "prestats" and llibre.dni_prestec != "None":
+            elif filtre == "prestats" and llibre.dni_prestec is not None:
                 resultat.append(llibre.imprimir_dades())
         return "\n".join(resultat) if resultat else "Cap llibre coincideix amb el filtre."
 
@@ -67,7 +82,7 @@ class Biblioteca:
             del self.usuaris[dni]
             for llibre in self.llibres.values():
                 if llibre.dni_prestec == dni:
-                    llibre.dni_prestec = "None"
+                    llibre.dni_prestec = None
                     llibre.data_prestec = None
             return f"Usuari amb DNI {dni} eliminat."
         return f"Usuari amb DNI {dni} no trobat."
@@ -87,7 +102,7 @@ class Biblioteca:
             return f"DNI invàlid: {dni}"
 
         llibre = self.llibres[titol]
-        if llibre.dni_prestec != "None":
+        if llibre.dni_prestec is not None:
             return f"El llibre ja està prestat."
 
         llibres_prestats = [l for l in self.llibres.values() if l.dni_prestec == dni]
@@ -103,13 +118,13 @@ class Biblioteca:
             return f"Llibre '{titol}' no trobat."
 
         llibre = self.llibres[titol]
-        if llibre.dni_prestec == "None":
+        if llibre.dni_prestec is None:
             return f"El llibre ja està disponible."
 
         avis = ""
         if datetime.now() - llibre.data_prestec > timedelta(days=30):
             avis = " (ATENCIÓ: préstec excedit d'un mes)"
 
-        llibre.dni_prestec = "None"
+        llibre.dni_prestec = None
         llibre.data_prestec = None
         return f"Llibre '{titol}' retornat correctament.{avis}"

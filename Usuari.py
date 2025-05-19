@@ -1,5 +1,5 @@
 class Usuari:
-    def __init__(self, nom: str = "None", cognoms: str = "None", dni: str = "None") -> str:
+    def __init__(self, nom: str = "None", cognoms: str = "None", dni: str = "None") -> None:
         self.nom = nom
         self.cognoms = cognoms
         self.dni = dni
