@@ -1,7 +1,6 @@
 import unittest
 from datetime import datetime, timedelta
-from biblioteca import Biblioteca, Llibre, dni_valid
-
+from Biblioteca import Biblioteca, Llibre, dni_valid
 
 class TestDniValid(unittest.TestCase):
     def test_dni_correcte(self):
@@ -11,7 +10,6 @@ class TestDniValid(unittest.TestCase):
         self.assertFalse(dni_valid("1234Z"))
         self.assertFalse(dni_valid("ABCDEFGHZ"))
         self.assertFalse(dni_valid("12345678z")) 
-
 
 class TestLlibre(unittest.TestCase):
     def test_imprimir_disponible(self):
