@@ -1,24 +1,10 @@
+from Usuari import Usuari
 import hashlib
 import getpass
 
-class Usuari:
-    def __init__(self, nom="None", cognoms="None", dni="None"):
-        self.nom = nom
-        self.cognoms = cognoms
-        self.dni = dni
-
-    def imprimir_dades(self):
-        return f"Nom: {self.nom}, Cognoms: {self.cognoms}, DNI: {self.dni}"
-
-    def introduir_dades(self):
-        self.nom = input("Introdueix el nom: ")
-        self.cognoms = input("Introdueix els cognoms: ")
-        self.dni = input("Introdueix el DNI: ")
-
 class UsuariRegistrat(Usuari):
-
-    def __init__(self, tipus_usuari="lector", **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, nom="None", cognoms="None", dni="None", tipus_usuari="lector"):
+        super().__init__(nom, cognoms, dni)
         if tipus_usuari.lower() in ("lector", "admin"):
             self.tipus_usuari = tipus_usuari.lower()
         else:
@@ -54,3 +40,6 @@ class UsuariRegistrat(Usuari):
             self.tipus_usuari = tipus
         else:
             self.tipus_usuari = "lector"
+
+    def __str__(self):
+        return f"{super().__str__()}, Tipus: {self.tipus_usuari}"

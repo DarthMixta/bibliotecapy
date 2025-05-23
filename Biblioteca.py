@@ -52,15 +52,18 @@ class Biblioteca:
         return contrasenya_guardada == self.hashear_contrasenya(contrasenya_introduida)
 
     def afegir_usuari(self, usuari: Usuari) -> bool:
+        # Comprovar que sigui instància d'UsuariRegistrat
         if not isinstance(usuari, UsuariRegistrat):
             print("Error: només es poden afegir usuaris registrats.")
             return False
 
+        # Validar tipus_usuari
         if usuari.tipus_usuari not in ["lector", "admin"]:
             print("Error: tipus_usuari ha de ser 'lector' o 'admin'.")
             return False
 
-        if not re.match(r"^\d{8}[A-HJ-NP-TV-Z]$", usuari.dni):
+        # Validar format DNI
+        if not re.match(r"^\d{8}[A-HJ-NP-TV-Z]$", usuari.dni, re.IGNORECASE):
             print("Error: DNI no vàlid.")
             return False
 
@@ -74,6 +77,7 @@ class Biblioteca:
             print("Error: l'usuari ja existeix.")
             return False
 
+        # Assegurar que la contrasenya està hasheada (si no, hashejar aquí)
         contrasenya_xifrada = usuari.get_contrasenya()
 
         cursor.execute('''
@@ -93,22 +97,25 @@ class Biblioteca:
 
     def afegir_llibre(self, llibre: Llibre) -> str:
         cursor = self.conn.cursor()
-        cursor.execute(
-            "INSERT INTO llibres (titol, autor, dni_prestec, data_prestec) VALUES (?, ?, NULL, NULL)",
-            (llibre.titol, llibre.autor)
-        )
-        self.conn.commit()
-        return "Llibre afegit."
+        try:
+            cursor.execute(
+                "INSERT INTO llibres (titol, autor, dni_prestec, data_prestec) VALUES (?, ?, NULL, NULL)",
+                (llibre.titol, llibre.autor)
+            )
+            self.conn.commit()
+            return "Llibre afegit."
+        except sqlite3.IntegrityError:
+            return "Error: El llibre ja existeix."
 
     def imprimir_usuaris(self):
         cursor = self.conn.cursor()
         cursor.execute("SELECT dni, nom, cognoms, tipus_usuari FROM usuaris")
         usuaris = cursor.fetchall()
-    
+
         if not usuaris:
             print("No hi ha usuaris registrats.")
             return
-    
+
         print(f"{'DNI':<12} {'Nom':<15} {'Cognoms':<20} {'Tipus Usuari':<10}")
         print("-" * 60)
         for dni, nom, cognoms, tipus in usuaris:
@@ -138,6 +145,8 @@ class Biblioteca:
 
     def prestar_llibre(self, titol, dni):
         cursor = self.conn.cursor()
+
+        # Comprovar si usuari té menys de 3 llibres
         cursor.execute("SELECT COUNT(*) FROM llibres WHERE dni_prestec = ?", (dni,))
         if cursor.fetchone()[0] >= 3:
             return "L’usuari ja té 3 llibres en préstec."
@@ -159,12 +168,15 @@ class Biblioteca:
         cursor = self.conn.cursor()
         cursor.execute("SELECT data_prestec FROM llibres WHERE titol = ?", (titol,))
         data = cursor.fetchone()
-        if data:
+        if data and data[0]:
             data_prestec = datetime.strptime(data[0], "%Y-%m-%d")
             dies = (datetime.now() - data_prestec).days
             cursor.execute("UPDATE llibres SET dni_prestec = NULL, data_prestec = NULL WHERE titol = ?", (titol,))
             self.conn.commit()
-            return f"Llibre tornat. Dies en préstec: {dies}"
+            if dies > 30:
+                return f"Llibre tornat, però ha excedit el termini d'un mes (dies: {dies})."
+            else:
+                return f"Llibre tornat correctament. Dies en préstec: {dies}"
         return "El llibre no està en préstec."
 
     def actualitzar_usuari(self, dni: str, nou_nom: str, nous_cognoms: str) -> str:
@@ -186,6 +198,11 @@ class Biblioteca:
             return "Llibre no trobat."
 
         if titol_actual != nou_titol:
+            # Comprovar que nou_titol no existeix per evitar conflictes de clau primària
+            cursor.execute("SELECT * FROM llibres WHERE titol = ?", (nou_titol,))
+            if cursor.fetchone() is not None:
+                return "Error: Ja existeix un llibre amb aquest nou títol."
+
             cursor.execute("DELETE FROM llibres WHERE titol = ?", (titol_actual,))
             cursor.execute(
                 "INSERT INTO llibres (titol, autor, dni_prestec, data_prestec) VALUES (?, ?, NULL, NULL)",

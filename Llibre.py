@@ -1,5 +1,5 @@
 class Llibre:
-    def __init__(self, titol: str = "None", autor: str = "None", dni_prestec: str = "None") -> str:
+    def __init__(self, titol: str = "None", autor: str = "None", dni_prestec: str = "None"):
         self.titol = titol
         self.autor = autor
         self.dni_prestec = dni_prestec
